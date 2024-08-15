@@ -14,18 +14,16 @@ import {
     descriptionWholesome, description1, description2, join1, end1,
     wholesomeEnd, rankEnd, hookLouds
 } from './messages.mjs';
+import {
+    msgRegex, inviteRegex, disbandRegex, joinRegex, guildRegex, mutedRegex, partyChatRegex, housingRegex, moveCommandRegex
+} from './regex.mjs';
 
 const { goals } = pkg;
 pathfinder(mineflayer);
 const GoalFollow = goals.GoalFollow;
 
 // Define the regex patterns used in processMessage (placeholders)
-const msgRegex = /yourMsgRegex/g;
-const inviteRegex = /yourInviteRegex/g;
-const mutedRegex = /yourMutedRegex/g;
-const disbandRegex = /yourDisbandRegex/g;
-const joinRegex = /yourJoinRegex/g;
-const guildRegex = /yourGuildRegex/g;
+
 process.on('uncaughtException', (err) => {
     console.log('There was an uncaught error', err);
 });
@@ -158,11 +156,30 @@ export class MCBot {
     async processMessage(message) {
         if (msgRegex.test(message)) {
             const { username, msg, subject } = msgRegex.exec(message).groups;
+            console.log(`[${this.bot.username}] [MSG] ${username}: ${message}`);
+            this.operatorCommand(msg, subject, username);
+        }
+
+        if (guildRegex.test(message)) {
+            const { username, msg, target, subject } = guildRegex.exec(message).groups;
+            console.log(`[${this.bot.username}] [OFFICER CHAT] ${username}: ${message}`);
+            if (target === this.bot.username || target === 'all') { console.log(`[${this.bot.username}] ${message}` );}
+            this.operatorCommand(msg, subject, username);
+        }
+
+        if (partyChatRegex.test(message)) {
+            const { username, msg, target, subject } = partyChatRegex.exec(message).groups;
+            
+            console.log(`[${this.bot.username}] [PARTY CHAT] ${username}: ${message}`);
+            if (!Operators.includes(username)) {
+                return
+            }
+            if (target === this.bot.username || target === 'all') { console.log(`[${this.bot.username}] ${message}` );}
             this.operatorCommand(msg, subject, username);
         }
 
         if (inviteRegex.test(message)) {
-            const { rank, username } = inviteRegex.exec(message).groups;
+            const { username } = inviteRegex.exec(message).groups;
             if (Operators.includes(username)) {
                 this.partyLeader = username;
                 this.bot.chat("/party leave");
@@ -214,6 +231,13 @@ export class MCBot {
         }
 
         // Add more operator commands as needed...
+    }
+
+
+    moveToPlayer(username) {
+        this.target = this.bot.players[username].entity;
+        console.log(`[${this.bot.username}] Moving over to ${username}'s position: ${this.bot.players[username].entity.position}`);
+        this.bot.navigate.to(this.target.position);
     }
 
     // Handles chat report command
@@ -297,7 +321,7 @@ export class MCBot {
         console.log(`[${this.bot.username}] Visit Housing Triggered`);
         setTimeout(() => this.bot.chat(`/lobby Housing`), 1000);
         console.log(`[${this.bot.username}] Visiting ${this.settings.autoVisitUsername}'s housing`);
-        setTimeout(() => this.bot.chat(`/visit ${this.autoVisitUsername}`), 6000);
+        setTimeout(() => this.bot.chat(`/visit ${this.settings.autoVisitUsername}`), 6000);
         console.log(`[${this.bot.username}] Visiting slot ${this.settings.autoVisitSlot}`);
     }
 
