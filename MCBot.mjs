@@ -1,10 +1,12 @@
-// MCBot.mjs
+// MCBots
 
 import mineflayer from 'mineflayer';
 import pathfinder from 'mineflayer-navigate';
 import pkg from 'mineflayer-pathfinder';
 import Vec3 from 'vec3';
 import cron from 'node-cron';
+
+import { mineflayer as mineflayerViewer } from 'prismarine-viewer';
 import { botArgs, Operators, gifter } from './config.mjs';
 import { skyblockAdvertise, clickLobbySlot, extractLobbiesFromWindow, calculateAveragePlayerCount, filterPopularLobbies, getNextPopularLobby, selectNextLobby } from './skyblock.mjs';
 import {
@@ -24,6 +26,10 @@ const mutedRegex = /yourMutedRegex/g;
 const disbandRegex = /yourDisbandRegex/g;
 const joinRegex = /yourJoinRegex/g;
 const guildRegex = /yourGuildRegex/g;
+process.on('uncaughtException', (err) => {
+    console.error('There was an uncaught error', err);
+    return
+});
 
 export class MCBot {
     constructor(username, settings) {
@@ -56,13 +62,26 @@ export class MCBot {
         this.initEvents();
         this.partyLeader = null;       
     }
-
+    
     initEvents() {
         this.bot.on('login', this.onLogin.bind(this));
         this.bot.on("kicked", this.onKicked.bind(this));
         this.bot.on('end', this.onEnd.bind(this));
         this.bot.on('spawn', this.onSpawn.bind(this));
-        this.bot.on('error', this.onError.bind(this));
+        this.bot.on('error', (err) => {
+            if (err.startsWith("Uncaught Exception: Error: Server didn't respond to transaction for clicking on")) {
+                return
+            }
+            if (err.code == 'ECONNREFUSED') {
+                console.log(`[${this.bot.username}] Failed to connect to ${err.address}:${err.port}`)
+            }
+            else if (err === `Error: Failed to obtain profile data for ${this.bot.username}, does the account own minecraft?`) {
+                console.log(`[${this.bot.username}] Unhandled error: ${err}`);
+            }
+            else {
+                console.log(`[${this.bot.username}] Unhandled error: ${err}`);
+            }
+        });
         this.bot.on("messagestr", this.onMessage.bind(this));
         this.bot.on("windowOpen", this.onWindowOpen.bind(this));
     }
@@ -74,6 +93,10 @@ export class MCBot {
         this.onRejoinDelay = false;
         this.advertising = false;
         this.advertisingDelay = false;
+        if (!this.webServerStarted) { // Check if the web server has already been started
+            mineflayerViewer(this.bot, { port: 136, firstPerson: true });
+            this.webServerStarted = true; // Set the flag to true
+        }
     }
 
     // Event handler for being kicked
@@ -116,13 +139,10 @@ export class MCBot {
     }
 
     // Event handler for errors
-    onError(err) {
-        if (err.code === 'ECONNREFUSED') {
-            console.log(`[${this.bot.username}] Failed to connect to ${err.address}:${err.port}`);
-        } else {
-            console.error(`[${this.bot.username}] Unhandled error: ${err}`);
-        }
-    }
+        // Event handler for errors
+    // Handle uncaught exceptions
+
+    
 
     // Event handler for chat messages
     onMessage(message, username) {
@@ -255,7 +275,9 @@ export class MCBot {
 
         if (!this.advertising) {
             console.log(`[${this.bot.username}] /visit Menu (probably) Window Opening detected, clicking it.`);
-            this.bot.simpleClick.leftMouse(window.slots.filter(n => n)[this.settings.autoVisitSlot - 1].slot, 1, 0);
+            this.bot.simpleClick.leftMouse(window.slots.filter((n) => n)[this.settings.autoVisitSlot - 1].slot, 1, 0);
+
+        
         } else {
             console.log(`[${this.bot.username}] Hopefully Skyblock hub menu opened.`);
             const lobbies = extractLobbiesFromWindow(window);
@@ -281,7 +303,7 @@ export class MCBot {
     visitHousing() {
         console.log(`[${this.bot.username}] Visit Housing Triggered`);
         setTimeout(() => this.bot.chat(`/lobby Housing`), 1000);
-        console.log(`[${this.bot.username}] Visiting ${this.autoVisitUsername}'s housing`);
+        console.log(`[${this.bot.username}] Visiting ${this.settings.autoVisitUsername}'s housing`);
         setTimeout(() => this.bot.chat(`/visit ${this.autoVisitUsername}`), 6000);
         console.log(`[${this.bot.username}] Visiting slot ${this.settings.autoVisitSlot}`);
     }
