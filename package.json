@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "mineflayer": "^4.20.1",
+    "mineflayer-navigate": "^0.0.10",
+    "mineflayer-pathfinder": "^2.4.5",
+    "node-cron": "^3.0.3",
+    "vec3": "^0.1.10"
+  }
+}
