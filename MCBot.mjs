@@ -27,8 +27,7 @@ const disbandRegex = /yourDisbandRegex/g;
 const joinRegex = /yourJoinRegex/g;
 const guildRegex = /yourGuildRegex/g;
 process.on('uncaughtException', (err) => {
-    console.error('There was an uncaught error', err);
-    return
+    console.log('There was an uncaught error', err);
 });
 
 export class MCBot {
@@ -69,16 +68,10 @@ export class MCBot {
         this.bot.on('end', this.onEnd.bind(this));
         this.bot.on('spawn', this.onSpawn.bind(this));
         this.bot.on('error', (err) => {
-            if (err.startsWith("Uncaught Exception: Error: Server didn't respond to transaction for clicking on")) {
-                return
-            }
-            if (err.code == 'ECONNREFUSED') {
-                console.log(`[${this.bot.username}] Failed to connect to ${err.address}:${err.port}`)
-            }
-            else if (err === `Error: Failed to obtain profile data for ${this.bot.username}, does the account own minecraft?`) {
-                console.log(`[${this.bot.username}] Unhandled error: ${err}`);
-            }
-            else {
+            if (err.code === 'ECONNRESET') {
+                console.log(`[${this.bot.username}] Connection reset by peer, rejoining...`);
+                this.initBot();
+            } else {
                 console.log(`[${this.bot.username}] Unhandled error: ${err}`);
             }
         });
@@ -94,7 +87,7 @@ export class MCBot {
         this.advertising = false;
         this.advertisingDelay = false;
         if (!this.webServerStarted) { // Check if the web server has already been started
-            mineflayerViewer(this.bot, { port: 136, firstPerson: true });
+            mineflayerViewer(this.bot, { port: 3007, firstPerson: true });
             this.webServerStarted = true; // Set the flag to true
         }
     }
