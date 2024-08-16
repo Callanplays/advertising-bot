@@ -21,7 +21,7 @@ import mineflayer from 'mineflayer';
 import pathfinder from 'mineflayer-navigate';
 import pkg from 'mineflayer-pathfinder';
 import cron from 'node-cron';
-import { hookRank, hookWholesome1, hookWholesome2, hookLoud1, hookLoud2, descriptionWholesome, description1, description2, join1, end1, wholesomeEnd, rankEnd, hookLouds } from './messages.mjs'
+import { hookRank, hookWholesome1, hookWholesome2, hookLoud1, hookLoud2, descriptionWholesome, description1, description2, join1, end1, wholesomeEnd, rankEnd, hookLouds } from './imports/messages.mjs'
 const { goals } = pkg;
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);

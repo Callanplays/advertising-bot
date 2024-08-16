@@ -1,11 +1,8 @@
-// MCBots
-
+// Description: Main bot class for the Minecraft bot
 import mineflayer from 'mineflayer';
 import pathfinder from 'mineflayer-navigate';
 import pkg from 'mineflayer-pathfinder';
-import Vec3 from 'vec3';
-import cron from 'node-cron';
-
+import { createRequire } from 'module';
 import { mineflayer as mineflayerViewer } from 'prismarine-viewer';
 import { botArgs, Operators, gifter } from './config.mjs';
 import { skyblockAdvertise, clickLobbySlot, extractLobbiesFromWindow, calculateAveragePlayerCount, filterPopularLobbies, getNextPopularLobby, selectNextLobby } from './skyblock.mjs';
@@ -13,21 +10,24 @@ import {
     hookRank, hookWholesome1, hookWholesome2, hookLoud1, hookLoud2,
     descriptionWholesome, description1, description2, join1, end1,
     wholesomeEnd, rankEnd, hookLouds
-} from './messages.mjs';
+} from './imports/messages.mjs';
 import {
     msgRegex, inviteRegex, disbandRegex, joinRegex, guildRegex, mutedRegex, partyChatRegex, housingRegex, moveCommandRegex
-} from './regex.mjs';
+} from './imports/regex.mjs';
 
+// setup pathfinder
 const { goals } = pkg;
+const require = createRequire(import.meta.url);
+const navigatePlugin = require('mineflayer-navigate')(mineflayer);
 pathfinder(mineflayer);
 const GoalFollow = goals.GoalFollow;
 
-// Define the regex patterns used in processMessage (placeholders)
-
+// Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
     console.log('There was an uncaught error', err);
 });
 
+// Main bot class
 export class MCBot {
     constructor(username, settings) {
         this.username = username;
@@ -36,8 +36,8 @@ export class MCBot {
         this.port = botArgs.port;
         this.version = botArgs.version;
         this.auth = botArgs.auth;
-
         this.initBot();
+        navigatePlugin(this.bot);
     }
 
     initBot() {
@@ -52,12 +52,11 @@ export class MCBot {
             version: this.version,
             auth: this.auth 
         });
-
-        // Load pathfinder plugin
         this.bot.loadPlugin(pathfinder);
         this.justJoined = true;
         this.initEvents();
-        this.partyLeader = null;       
+        this.partyLeader = null;      
+        navigatePlugin(this.bot); 
     }
     
     initEvents() {
@@ -128,28 +127,11 @@ export class MCBot {
             this.settings.wholesomeAdvertise ? setTimeout(() => this.wholesomeLoop(), 5000) : this.visitHousing();
         }
     }
-
-    // Event handler for errors
-        // Event handler for errors
-    // Handle uncaught exceptions
-
     
-
     // Event handler for chat messages
     onMessage(message, username) {
         if (username !== "chat") return;
         this.processMessage(message);
-    }
-
-    // Makes the bot run and jump (example action)
-    async runAndJump() {
-        this.bot.creative.stopFlying();
-        this.bot.setControlState('forward', true);
-        await this.bot.waitForTicks(1);
-        this.bot.setControlState('sprint', true);
-        this.bot.setControlState('jump', true);
-        await this.bot.waitForTicks(11);
-        this.bot.clearControlStates();
     }
 
     // Processes incoming messages and handles them
@@ -229,11 +211,9 @@ export class MCBot {
         if (msg in recognizedMessages) {
             recognizedMessages[msg]();
         }
-
-        // Add more operator commands as needed...
     }
 
-
+    // handles .come command
     moveToPlayer(username) {
         this.target = this.bot.players[username].entity;
         console.log(`[${this.bot.username}] Moving over to ${username}'s position: ${this.bot.players[username].entity.position}`);
@@ -252,8 +232,8 @@ export class MCBot {
 
     // Manually advertise on chat
     handleManualAdvertise() {
-        console.log(`[${this.bot.username}] Manually advertising rank gifter IGN!`);
-        this.bot.chat(`/pc kk im gonna send a /visit ${gifter} message`);
+        console.log(`[${this.bot.username}] Manually advertising IGN!`);
+        this.bot.chat(`/pc Creating an advertisent for ${gifter} `);
         setTimeout(() => {
             this.bot.chat(this.generateAdvertisement(4));
         }, this.getRandomInt(5000) + 1000);
@@ -268,18 +248,38 @@ export class MCBot {
     }
 
     // Advertising loop to continually send advertisements
-    async advertiseLoop() {
-        while (this.advertising) {
-            if (!this.advertisingDelay) {
-                console.log(`[${this.bot.username}] Sending advertisement...`);
-                this.bot.chat(this.generateAdvertisement(3)); // Example advertisement type ID
-                this.advertisingDelay = true;
-                setTimeout(() => {
-                    this.advertisingDelay = false;
-                }, this.settings.wholesomeDelay * 60000); // Delay in milliseconds
-            }
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Check every second
+    advertiseLoop() {
+        if (!this.advertiseLoop || !this.advertising || this.advertisingDelay) { 
+            console.log(`[${this.bot.username}] Advertisement loop ended because advertising was disabled, or two loops somehow occurred.`);
+            return
         }
+        this.advertisingDelay = true
+        this.bot.chat(`/lobby`)
+        
+        setTimeout(() => {
+            console.log(`[${this.bot.username}] Attempted to go to the Housing Lobby`)
+            this.bot.chat(`/l housing`)
+        }, 5000 + getRandomInt(5)*1000);
+
+        setTimeout(() => {
+            console.log(`[${this.bot.username}] Attempted to go to a random Lobby Instance`)
+            this.bot.chat(`/swaplobby ${getRandomInt(4)}`)
+        }, 10000 + getRandomInt(5)*1000);
+
+        setTimeout(() => {
+            console.log(`[${this.bot.username}] Generated an Advertisement`)
+            advertisement = generateAdvertisement(6)
+            console.log(`[${this.bot.username}] Sending Advertisement: ${advertisement}`)
+            this.bot.chat(advertisement)
+        }, 15000 + getRandomInt(5)*1000);
+
+        setTimeout(() => {
+            this.advertising = true
+            this.advertiseLoop = true
+            this.advertisingDelay = false 
+            advertiseLoop();
+        }, 20000 + getRandomInt(10)*1000);
+        
     }
 
     // Event handler for window opening
@@ -295,21 +295,9 @@ export class MCBot {
             this.bot.simpleClick.leftMouse(window.slots.filter((n) => n)[this.settings.autoVisitSlot - 1].slot, 1, 0);
 
         
-        } else {
-            console.log(`[${this.bot.username}] Hopefully Skyblock hub menu opened.`);
-            const lobbies = extractLobbiesFromWindow(window);
-
-            const averagePlayerCount = calculateAveragePlayerCount(lobbies);
-            const popularLobbies = filterPopularLobbies(lobbies, averagePlayerCount);
-
-            const nextLobby = getNextPopularLobby(popularLobbies, this.currentLobby);
-            if (nextLobby) {
-                selectNextLobby(this.bot, nextLobby);
-                skyblockAdvertise(this.bot);
-            } else {
-                console.log(`Reached end of above-average Skyblock lobbies. (${this.currentLobby})`);
-            }
-        }
+        } 
+        if (this.skyblockAdvertising)
+        else {
     }
 
     wholesomeLoop() {

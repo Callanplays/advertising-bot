@@ -1,4 +1,3 @@
-// index.js
 import { MCBot } from './MCBot.mjs';
 import { botSettings } from './config.mjs';
 

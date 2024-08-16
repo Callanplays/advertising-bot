@@ -1,5 +1,3 @@
-// config.js
-
 // Configuration settings for the bot connection
 export const botArgs = {
     host: 'hypixel.net',
@@ -28,7 +26,7 @@ export const Operators = [
     "Agentwinters_"
 ];
 
-// List of gifters for advertising purposes
+// Housing event leader
 export const gifter = ["Tusr"];
 
 // Bot settings configuration

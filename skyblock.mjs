@@ -1,4 +1,3 @@
-// skyblock.js
 import Vec3 from 'vec3';
 
 const getRandomInt = (max) => Math.floor(Math.random() * max);
