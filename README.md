@@ -21,8 +21,8 @@ Ensure you have Node.js installed on your system. You can download it from [node
 
 1. Clone the repository.
     ```sh
-    git clone https://github.com/yourusername/minecraft-advertising-bot.git
-    cd minecraft-advertising-bot
+    git clone https://github.com/callanplays/advertising-bot
+    cd advertising-bot
     ```
 2. Install the required dependencies.
     ```sh
