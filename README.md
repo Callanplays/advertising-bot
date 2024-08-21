@@ -83,6 +83,19 @@ export const Operators = [
 ];
 
 export const gifter = ["gifter"];
+export const botSettings = [
+    {
+        gmail: "email@emailservice.sus", // Email associated with the bot
+        settings: {
+            autoVisitUsername: "House owner"", // Auto visit username
+            autoVisitSlot: 1, // Slot to visit
+            wholesomeAdvertise: false, // Whether to use wholesome advertising
+            wholesomeDelay: 5, // Delay for wholesome advertising in minutes
+            rejoinDelay: 180, // Delay for bot to rejoin after being kicked, in minutes
+            housingID: 1 // ID of the housing
+        }
+    }
+];
 ```
 
 ## Contributing
