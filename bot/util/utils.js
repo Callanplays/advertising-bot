@@ -9,7 +9,7 @@ import { guild, botSettings } from '../config.js';
 export function visitHousing(bot) {    
     setTimeout(() => bot.chat(`/lobby Housing`), 1000);
     console.log('Visit housing triggered')
-    setTimeout(() => bot.chat(`/visit ${botSettings.autoVisitUsername}`), 6000);    
+    setTimeout(() => bot.chat(`/visit ${bot.botConfig.autoVisitUsername}`), 6000);    
 }
     
 export function findNearestPlayer(bot) {

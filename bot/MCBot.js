@@ -12,7 +12,13 @@ import { getRandomInt, generateAdvertisement, visitHousing } from './util/utils.
 
 
 process.on('uncaughtException', (err) => {
-    return
+    
+    const errorString = err.toString();
+    if (errorString.startsWith("Error: Server didn't respond to transaction for clicking on slot")) {
+        return
+      } else {
+        console.error(err);
+      }
 });
 
 const require = createRequire(import.meta.url);
@@ -20,9 +26,10 @@ const navigatePlugin = require('mineflayer-navigate')(mineflayer);
 pathfinder(mineflayer);
 
 export class MCBot {
-    constructor(username, settings) {
+    constructor(username, botConfig) {
         this.username = username;
-        this.settings = settings;
+        this.botConfig = botConfig;
+
         this.host = botArgs.host;
         this.port = botArgs.port;
         this.version = botArgs.version;
@@ -41,8 +48,11 @@ export class MCBot {
             host: this.host,
             port: this.port,
             version: this.version,
-            auth: this.auth 
+            auth: this.auth,
+            settings: this.botConfig
         });
+
+        this.bot.botConfig = this.botConfig
         this.bot.loadPlugin(pathfinder);
         this.justJoined = true;
         this.initEvents();

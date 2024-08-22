@@ -21,8 +21,8 @@ export const guild = "Signet of the Fallen Heroes";
 export const botSettings = [
     {
         gmail: "callanplays@proton.me", // Email associated with the bot
-        settings: {
-            autoVisitUsername: "Agentwinters_", // Auto visit username
+        botConfig: {
+            autoVisitUsername: "AgentWinters_", // Auto visit username
             autoVisitSlot: 1, // Slot to visit
             wholesomeAdvertise: false, // Whether to use wholesome advertising
             wholesomeDelay: 5, // Delay for wholesome advertising in minutes
