@@ -20,7 +20,7 @@ export const guild = "Signet of the Fallen Heroes";
 // Bot settings configuration
 export const botSettings = [
     {
-        gmail: "callanplays@proton.me", // Email associated with the bot
+        gmail: "XXXX", // Email associated with the bot
         botConfig: {
             autoVisitUsername: "AgentWinters_", // Auto visit username
             autoVisitSlot: 1, // Slot to visit

@@ -87,8 +87,7 @@ export async function handleWarpWindowOpen(window, bot, goals) {
         const lobbySlot = clickLobbySlot(nextLobby);
         bot.simpleClick.leftMouse(lobbySlot, 1, 0);
         bot.once("messagestr", async (message) => {
-            const warpErrorMessage = "Couldn't warp you! Try again later. (SERVERS_DID_NOT_ACCEPT)";
-            if (message.includes(warpErrorMessage)) {
+            if (message.includes("Couldn't warp you! Try again later. (SERVERS_DID_NOT_ACCEPT)" || "This server is full!")) {
                 console.log("[Error] Server full, skipping and trying next server...");
                 if (bot.dungeonHubAdv) {
                     dungeonHubAdvertise(bot, goals)

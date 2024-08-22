@@ -50,9 +50,9 @@ export class MCBot {
             settings: this.botConfig
         });
 
-        this.isAdvertising = false;
-        this.isSkyblockAdvertising = false;
-        this.dungeonHubAdv = false;
+        this.bot.isAdvertising = false;
+        this.bot.isSkyblockAdvertising = false;
+        this.bot.dungeonHubAdv = false;
         this.bot.botConfig = this.botConfig
         this.bot.loadPlugin(pathfinder);
         this.justJoined = true;
@@ -85,26 +85,26 @@ export class MCBot {
     }
 
     onKicked(reason, loggedIn) {
-        console.log(`[${this.bot.username}] Kick: ${reason}, rejoin delay: ${this.settings.rejoinDelay}`);
+        console.log(`[${this.bot.username}] Kick: ${reason}, rejoin delay: ${this.botConfig.rejoinDelay}`);
         this.justJoined = true;
         if (!this.onRejoinDelay) { 
             this.onRejoinDelay = true;
             setTimeout(() => {
                 this.onRejoinDelay = false;
                 this.initBot();
-            }, this.settings.rejoinDelay * 60000);
+            }, this.botConfig.rejoinDelay * 60000);
         }
     }
 
     onEnd(reason) {
-        console.log(`[${this.bot.username}] End: ${reason}, rejoin delay: ${this.settings.rejoinDelay}`);
+        console.log(`[${this.bot.username}] End: ${reason}, rejoin delay: ${this.botConfig.rejoinDelay}`);
         this.justJoined = true;
         if (!this.onRejoinDelay) { 
             this.onRejoinDelay = true;
             setTimeout(() => {
                 this.onRejoinDelay = false;
                 this.initBot();
-            }, this.settings.rejoinDelay * 60000);
+            }, this.botConfig.rejoinDelay * 60000);
         }
     }
 
@@ -190,7 +190,7 @@ export class MCBot {
             '.come': () => this.moveToPlayer(username),
             '.attack': () => this.attackNearestPlayer(),
             '.stop': (this.isAdvertising = false, this.isSkyblockAdvertising = false, this.dungeonHubAdv = false),
-            '.skyblockAdv': () => this.startSkyblockAdvertising(),
+            '.skyblockAdv': () => this.startSkyblockAdvertising(subject),
             '.dhAdv': () => this.startDungeonHubAdvertising(),
             '.test': () => this.test()
         };
@@ -234,17 +234,26 @@ export class MCBot {
     }
 
     async startDungeonHubAdvertising() {
-        this.isSkyblockAdvertising = true;
-        this.dungeonHubAdv = true;
-        console.log(this.bot.username, "is starting dungeon hub advertising ONLY", this.dungeonHubAdv)
+        this.bot.isSkyblockAdvertising = true; 
+        this.bot.dungeonHubAdv = true;
+        console.log(this.bot.username, "is starting dungeon hub advertising ONLY", this.bot.dungeonHubAdv)
         this.bot.chat("/play skyblock");
         await new Promise(resolve => setTimeout(resolve, 4000 + getRandomInt(1000)));
         this.bot.chat("/warp dh");
         dungeonHubAdvertise(this.bot, goals)
     }
     
-    async startSkyblockAdvertising() {
-        this.isSkyblockAdvertising = true;
+    async startSkyblockAdvertising(subject) {
+        subject = subject.split(' ')[0];
+        if (subject == "true") {
+            this.bot.dungeonHubAdv = false;
+        } if (subject == "false") {
+            this.bot.dungeonHubAdv = true;
+        } else {
+             console.error('Invalid type provided. (true/false)');
+             return
+        }
+        this.bot.isSkyblockAdvertising = true;
         console.log(this.bot.username, "is starting skyblock advertising", this.isSkyblockAdvertising)
         this.bot.chat("/play skyblock");
         await new Promise(resolve => setTimeout(resolve, 4000 + getRandomInt(1000)));
@@ -258,11 +267,11 @@ export class MCBot {
             this.chatReporting = false;
             return;
         }
-        if (this.isSkyblockAdvertising) {
+        if (this.bot.isSkyblockAdvertising) {
             console.log('Skyblock hub swap menu detected');
             await handleWarpWindowOpen(window, this.bot, goals);
         }
-        if (!this.isAdvertising) {
+        if (!this.bot.isAdvertising) {
             this.bot.simpleClick.leftMouse(window.slots.find(n => n).slot, 1, 0);
             return;
         }
