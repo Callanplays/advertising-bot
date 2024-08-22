@@ -1,6 +1,44 @@
 // messages.js
 
 // Various message templates used by the bot for advertising
+export const guildInvites = [
+    "Hi guys! Wanna join an awesome guild? Join Signet of the Fallen Heroes! We've got giveaways, guild events, two guilds and a discord all connected, active players, and fun times! /g join signet of the fallen heroes",
+    "Come join Signet Of The Fallen Heroes in Hypixel Skyblock! Get better at the game, make friends, and compete together, or just enjoy our community! /g Join Signet Of The Fallen Heroes",
+    "Is anyone interested in joining an active guild with giveaways and dungeon carries? If you have discord, join us at /g join signet of the fallen heroes!",
+];
+export const descriptionGuild1 = [
+    
+    "an amazing guild",
+    "a popular guild",
+    "an engaging guild",
+    "an exciting guild",
+    "a fun guild",
+    "an excellent guild",
+    "an awesome guild",
+    "a fantastic guild",
+    "an active guild",
+    "a great guild",
+]
+export const hookGuild = [
+    "Wanna join",
+    "Want to join",
+    "Come join",
+    "Is anyone interested in joining",
+    "You should join",
+    "We want you to join"
+]
+export const descriptionGuild2 = [
+    "insane events",
+    "frequent giveaways",
+    "a question of the day",
+    "an active discord",
+    "a friendly community",
+    "a fun place to hang out",
+    "a place to meet new people",
+    "dungeon and kuudra carries"
+]
+
+
 export const hookRank = [
     "we giftin :D",
     "fun event!",
@@ -11,11 +49,15 @@ export const hookRank = [
 ];
 
 export const hookWholesome1 = [
-    "hey",
-    "whats up",
+    "Hey!",
+    "Whats up!",
     "o/",
-    "hello",
-    "how u doin"
+    "Hello!",
+    "How u doin!",
+    "Hi guys!",
+    "Hey guys!",
+    "Hi!",
+    
 ];
 
 export const hookWholesome2 = [

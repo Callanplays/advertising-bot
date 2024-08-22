@@ -1,0 +1,112 @@
+import Vec3 from 'vec3';
+import { botArgs } from './config.mjs';
+
+let currentLobby;
+const getRandomInt = (max) => Math.floor(Math.random() * max);
+
+export function clickLobbySlot(lobbyNumber) {
+    // Calculate slot based on the lobby number
+    return lobbyNumber - 1; // Example arbitrary calculation
+}
+
+export async function handleSkyblockWindowOpen(window, bot) {
+    
+    console.log(`[${bot.username}] Skyblock advertisement window opened.`);
+    const lobbies = extractLobbiesFromWindow(window);
+    console.log(lobbies)
+    const average = calculateAveragePlayerCount(lobbies);
+    console.log(average)
+    const popularLobbies = filterPopularLobbies(lobbies, average);
+    console.log(popularLobbies)
+    if (typeof currentLobby === 'undefined') {
+        currentLobby = 0;
+    }
+    const nextLobby = getNextPopularLobby(popularLobbies, currentLobby);
+    console.log(nextLobby)
+
+    if (nextLobby) {
+        currentLobby = nextLobby.lobbyNumber;
+        bot.simpleClick.leftMouse(clickLobbySlot(nextLobby.lobbyNumber), 1, 0);
+        console.log(`[${bot.username}] Clicked on lobby ${nextLobby.lobbyNumber}`)
+        
+        // Wait between 3 and 4 seconds
+        await new Promise(resolve => setTimeout(resolve, 3000 + getRandomInt(1000)));
+        const moveForwardDistance = 10 + getRandomInt(11);
+        const currentPos = bot.entity.position.clone();
+        const forwardTarget = currentPos.offset(0, 0, moveForwardDistance);
+        bot.navigate.to(forwardTarget);
+        console.log(`[${bot.username}] Moving forward ${moveForwardDistance} blocks.`);
+    } else {
+        console.log(`Reached end of above-average Skyblock lobbies. (${currentLobby})`);
+        bot.isAdvertising = false;
+        bot.isSkyblockAdvertising = false;
+    }
+}
+export function skyblockAdvertise(bot) {
+    return new Promise((resolve) => {
+        // Go to the skyblock hub (twice for good measure)
+        setTimeout(() => {
+            bot.chat("/play skyblock");
+            console.log("ran playing skyblock")
+            setTimeout(() => {
+                bot.chat("/hub");
+                console.log("ran hub")
+                setTimeout(() => {
+                    bot.chat("/hub");
+                    bot.chat("/party warp")
+                    console.log('attempting to walk to lobby npc')
+                    // Move towards NPC
+            this.bot.look(1.57079632679, 0);
+            this.target = new Vec3(-10, 70, -69.5);
+            this.bot.navigate.to(new Vec3(-10, 70, -69.5));
+            this.bot.navigate.to(this.target);
+            setTimeout(() => resolve(), 3000 + Math.random() * 1000);
+            const nearestPlayer = this.findNearestPlayer();
+            if (nearestPlayer) {
+                this.bot.lookAt(nearestPlayer.entity.position.offset(0, nearestPlayer.entity.height, 0));
+            } else {
+                console.log('[Debug] No nearby player to face');
+            }
+            this.bot.attack(this.bot.nearestEntity(), true);
+                        resolve();  // Resolve the promise here
+                    }, 4000 + getRandomInt(1000));
+                }, 5000 + getRandomInt(1000));
+            }, 10000 + getRandomInt(1000));
+        }, 5000 + getRandomInt(1000));
+}
+export function extractLobbiesFromWindow(window) {
+    const lobbies = [];
+    for (let y = 1; y <= 4; y++) {
+        for (let x = 1; x <= 7; x++) {
+            const slot = window.slots[y * 9 + x];
+            if (slot?.nbt?.value?.display?.value?.Lore) {
+                const lore = slot.nbt.value.display.value.Lore.value.value[0];
+                const match = lore.match(/Players: (\d+)/);
+                if (match) {
+                    const playerCount = parseInt(match[1], 10);
+                    const lobbyNumber = slot.count;
+                    lobbies.push({ lobbyNumber, playerCount });
+                }
+            }
+        }
+    }
+    return lobbies;
+}
+
+export function calculateAveragePlayerCount(lobbies) {
+    const totalPlayers = lobbies.reduce((sum, lobby) => sum + lobby.playerCount, 0);
+    return totalPlayers / lobbies.length;
+}
+
+export function filterPopularLobbies(lobbies, average) {
+    return lobbies.filter(lobby => lobby.playerCount > average);
+}
+
+export function getNextPopularLobby(popularLobbies, currentLobby) {
+    return popularLobbies.find(lobby => lobby.lobbyNumber > currentLobby);
+}
+
+export function selectNextLobby(bot, nextLobby) {
+    const slotIndex = clickLobbySlot(nextLobby.lobbyNumber);
+    bot.simpleClick.leftMouse(slotIndex, 1, 0);
+}

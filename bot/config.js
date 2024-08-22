@@ -9,26 +9,14 @@ export const botArgs = {
 // List of operators (authorized users) who can control the bot
 export const Operators = [
     "chickendoodle08",
-    "onvm",
-    "Tusr",
-    "6nna",
     "Callanplays",
-    "h00dz",
-    "Cashn",
-    "NOO6",
-    "Mihd",
-    "Dharma",
-    "skywurs",
-    "Cheese_Sheep",
-    "ENNO20",
-    "Ohpls_",
-    "duckman_1013",
-    "Agentwinters_"
+    "Duckman_1013",
+    "AgentWinters_"
 ];
 
 // Housing event leader
-export const gifter = ["Tusr"];
-
+export const gifter = ["N/A"];
+export const guild = "Signet of the Fallen Heroes";
 // Bot settings configuration
 export const botSettings = [
     {

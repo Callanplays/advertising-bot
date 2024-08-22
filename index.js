@@ -1,5 +1,5 @@
-import { MCBot } from './MCBot.mjs';
-import { botSettings } from './config.mjs';
+import { MCBot } from './bot/MCBot.js';
+import { botSettings } from './bot/config.js';
 
 botSettings.forEach((config, i) => {
     setTimeout(() => {

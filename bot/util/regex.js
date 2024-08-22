@@ -12,7 +12,3 @@ export const mutedRegex =
     /^Mute ID: #(\S+)$/m;
 export const partyChatRegex =
 /^Party >(?: (?<rank>\[VIP\+?\]|\[MVP\+?\+?\]))? (?<username>[a-zA-Z0-9_]{2,16}): (?<msg>\.\w+.+) (?<target>[a-zA-Z0-9_]{2,16}) (?<subject>.+)$/m;
-export const housingRegex = 
-    /^\* (?<msg>.+)$/m;
-export const moveCommandRegex = 
-    /^(?<type>\w+)\s+(?<x>-?\d+)\s+(?<y>-?\d+)\s+(?<z>-?\d+)$/m;
