@@ -1,15 +1,14 @@
 // Description: Main bot class for the Minecraft bot
 import mineflayer from 'mineflayer';
-import pathfinder from 'mineflayer-navigate';
-import { createRequire } from 'module';
+import pkg from 'mineflayer-pathfinder';
 import { mineflayer as mineflayerViewer } from 'prismarine-viewer';
 import { botArgs, Operators } from './config.js';
-import { skyblockAdvertise, handleSkyblockWindowOpen, advertiseLoop } from './advertising.js';
+import { skyblockAdvertise, handleWarpWindowOpen, advertiseLoop, dungeonHubAdvertise } from './advertising.js';
 import {
     msgRegex, inviteRegex, disbandRegex, joinRegex, guildRegex, mutedRegex, partyChatRegex, 
 } from './util/regex.js';
-import { getRandomInt, generateAdvertisement, visitHousing } from './util/utils.js';
-
+import { getRandomInt, generateAdvertisement, visitHousing, findNearestPlayer } from './util/utils.js';
+const { pathfinder, Movements, goals } = pkg;
 
 process.on('uncaughtException', (err) => {
     
@@ -21,9 +20,8 @@ process.on('uncaughtException', (err) => {
       }
 });
 
-const require = createRequire(import.meta.url);
-const navigatePlugin = require('mineflayer-navigate')(mineflayer);
-pathfinder(mineflayer);
+
+
 
 export class MCBot {
     constructor(username, botConfig) {
@@ -36,8 +34,8 @@ export class MCBot {
         this.auth = botArgs.auth;
         this.isAdvertising = false;
         this.isSkyblockAdvertising = false;
+        this.dungeonHubAdv = false;
         this.initBot();
-        navigatePlugin(this.bot);
     }
 
     initBot() {
@@ -52,6 +50,9 @@ export class MCBot {
             settings: this.botConfig
         });
 
+        this.isAdvertising = false;
+        this.isSkyblockAdvertising = false;
+        this.dungeonHubAdv = false;
         this.bot.botConfig = this.botConfig
         this.bot.loadPlugin(pathfinder);
         this.justJoined = true;
@@ -74,6 +75,9 @@ export class MCBot {
     }
 
     onLogin() {
+        const defaultMove = new Movements(this.bot)
+        defaultMove.canDig = false
+        this.bot.pathfinder.setMovements(defaultMove)
         let botSocket = this.bot._client.socket;
         console.log(`[${this.bot.username}] Logged in to ${botSocket.server ? botSocket.server : botSocket._host}`);
         this.onRejoinDelay = false;
@@ -185,13 +189,19 @@ export class MCBot {
             '.startAdv': () => this.startAdvertising(),
             '.come': () => this.moveToPlayer(username),
             '.attack': () => this.attackNearestPlayer(),
-            '.stop': (this.isAdvertising = false, this.isSkyblockAdvertising = false),
+            '.stop': (this.isAdvertising = false, this.isSkyblockAdvertising = false, this.dungeonHubAdv = false),
             '.skyblockAdv': () => this.startSkyblockAdvertising(),
+            '.dhAdv': () => this.startDungeonHubAdvertising(),
+            '.test': () => this.test()
         };
 
         if (commands[msg]) {
             commands[msg]();
         }
+    }
+
+    async test() {
+
     }
     
     handleChatReport(subject) {
@@ -223,13 +233,23 @@ export class MCBot {
         advertiseLoop(this.bot);
     }
 
+    async startDungeonHubAdvertising() {
+        this.isSkyblockAdvertising = true;
+        this.dungeonHubAdv = true;
+        console.log(this.bot.username, "is starting dungeon hub advertising ONLY", this.dungeonHubAdv)
+        this.bot.chat("/play skyblock");
+        await new Promise(resolve => setTimeout(resolve, 4000 + getRandomInt(1000)));
+        this.bot.chat("/warp dh");
+        dungeonHubAdvertise(this.bot, goals)
+    }
+    
     async startSkyblockAdvertising() {
         this.isSkyblockAdvertising = true;
         console.log(this.bot.username, "is starting skyblock advertising", this.isSkyblockAdvertising)
         this.bot.chat("/play skyblock");
         await new Promise(resolve => setTimeout(resolve, 4000 + getRandomInt(1000)));
         this.bot.chat("/hub");
-        skyblockAdvertise(this.bot);
+        skyblockAdvertise(this.bot, goals);
     }
 
     async onWindowOpen(window) {
@@ -240,7 +260,7 @@ export class MCBot {
         }
         if (this.isSkyblockAdvertising) {
             console.log('Skyblock hub swap menu detected');
-            await handleSkyblockWindowOpen(window, this.bot);
+            await handleWarpWindowOpen(window, this.bot, goals);
         }
         if (!this.isAdvertising) {
             this.bot.simpleClick.leftMouse(window.slots.find(n => n).slot, 1, 0);

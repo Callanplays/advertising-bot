@@ -1,4 +1,4 @@
-import Vec3 from 'vec3';
+
 import {
     findNearestPlayer,
     getRandomInt,
@@ -45,12 +45,30 @@ export function clickLobbySlot(lobbyNumber) { // Calculate the slot index in the
 
 }
 
+export async function dungeonHubAdvertise(bot, goals) {
+    
+    console.log("Running dungeon hub advertisement PLS PLS PLS BE TRUE " + bot.dungeonHubAdv)
+    bot.chat("/warp dh");
+    await new Promise(resolve => setTimeout(resolve, 1000 + getRandomInt(1000)));
 
-export async function handleLobbySwapErr() {   
-    // Upcoming error handler for lobby swaps.
+
+    bot.look(1.57079632679, 0);
+    bot.pathfinder.setGoal(new goals.GoalBlock(-36.5, 119, 10.5));
+
+
+    await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 1000));
+    const nearestPlayer = findNearestPlayer(bot);
+
+    if (nearestPlayer) {
+        bot.lookAt(nearestPlayer.entity.position.offset(0, nearestPlayer.entity.height, 0));
+    } else {
+        console.log('[Debug] No nearby player to face');
+    }
+
+    bot.attack(bot.nearestEntity(), true);
 }
 
-export async function handleSkyblockWindowOpen(window, bot) {
+export async function handleWarpWindowOpen(window, bot, goals) {
     const lobbies = extractLobbiesFromWindow(window); // Extract lobby information from the window
     
     const popularLobbies = lobbies.filter(lobby => lobby.playerCount > 3); // Filter lobbies with more than average player count
@@ -68,33 +86,57 @@ export async function handleSkyblockWindowOpen(window, bot) {
         currentLobby = nextLobby;
         const lobbySlot = clickLobbySlot(nextLobby);
         bot.simpleClick.leftMouse(lobbySlot, 1, 0);
-        await new Promise(resolve => setTimeout(resolve, 4000 + getRandomInt(1000)));
-        const moveForwardDistance = 10 + getRandomInt(11);
-        const moveSideDistance = getRandomInt(30)-15
-        const currentPos = bot.entity.position.clone();
-        const newTarget = currentPos.offset(moveSideDistance, 0, moveForwardDistance*-1);
-        bot.navigate.to(newTarget);
-        
-        await new Promise(resolve => setTimeout(resolve, 3000 + getRandomInt(5000)));
-        const ad = generateAdvertisement(5);
-        console.log(`[${bot.username}] Advertisement: ${ad}`);
-        bot.chat(ad);
+        bot.once("messagestr", async (message) => {
+            const warpErrorMessage = "Couldn't warp you! Try again later. (SERVERS_DID_NOT_ACCEPT)";
+            if (message.includes(warpErrorMessage)) {
+                console.log("[Error] Server full, skipping and trying next server...");
+                if (bot.dungeonHubAdv) {
+                    dungeonHubAdvertise(bot, goals)
+                } else {
+                    skyblockAdvertise(bot, goals)
 
-        
-        
-        const waitTime = 20000 + getRandomInt(20000);
-        console.log(`[${bot.username}] Waiting for ${waitTime / 1000} seconds before proceeding.`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-        
-        skyblockAdvertise(bot)
+                }
+                
+                return;
+            }
+            await new Promise(resolve => setTimeout(resolve, 4000 + getRandomInt(1000)));
+            const moveForwardDistance = 10 + getRandomInt(11);
+            const moveSideDistance = getRandomInt(14)-7
+            bot.pathfinder.setGoal(new goals.GoalBlock(bot.entity.position.x + moveSideDistance, bot.entity.position.y, bot.entity.position.z - moveForwardDistance));
+
+            await new Promise(resolve => setTimeout(resolve, 3000 + getRandomInt(5000)));
+            const ad = generateAdvertisement(5);
+            console.log(`[${bot.username}] Advertisement: ${ad}`);
+            bot.chat(ad);
+
+            const waitTime = 20000 + getRandomInt(20000);
+            console.log(`[${bot.username}] Waiting for ${waitTime / 1000} seconds before proceeding.`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            
+            if (bot.dungeonHubAdv) {
+                dungeonHubAdvertise(bot, goals)
+            } else {
+                skyblockAdvertise(bot, goals)
+
+            }
+        });
         
     } else {
-        console.log(`Reached end of above-average Skyblock lobbies. Advertising completed.`);
-        bot.isSkyblockAdvertising = false;
+        if (bot.dungeonHubAdv) {
+            console.log(`Reached end of above-average lobbies. Advertising completed.`);
+            bot.isSkyblockAdvertising = false;
+            bot.dungeonHubAdv = false
+            currentLobby = 0
+            
+        }
+        console.log(`Reached end of above-average Skyblock lobbies. Moving to dungeon hub.`);
+        currentLobby = 0
+        bot.dungeonHubAdv = true
+        dungeonHubAdvertise(bot, goals)
     }
 }
 
-export async function skyblockAdvertise(bot) {
+export async function skyblockAdvertise(bot, goals) {
     // if (!bot.isSkyblockAdvertising) {
         // console.log(`[${bot.username}] Skyblock advertisement is not active.`);
         // return
@@ -103,8 +145,7 @@ export async function skyblockAdvertise(bot) {
     
     await new Promise(resolve => setTimeout(resolve, 4000 + getRandomInt(1000)));
     bot.look(1.57079632679, 0);
-    const target = new Vec3(-10, 70, -67);
-    bot.navigate.to(target);
+    bot.pathfinder.setGoal(new goals.GoalBlock(-10, 70, -67));
     
     await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 1000));
     const nearestPlayer = findNearestPlayer(bot);
